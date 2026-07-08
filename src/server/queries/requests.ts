@@ -55,6 +55,15 @@ export async function getRequestsInbox(filter: RequestInboxFilter = "all") {
     };
 }
 
+export async function getRequestById(id: string) {
+    return prisma.systemRequest.findUnique({
+        where: {
+            id,
+        },
+        select: requestInboxSelect,
+    });
+}
+
 export function normalizeRequestInboxFilter(
     value: string | string[] | undefined,
 ): RequestInboxFilter {

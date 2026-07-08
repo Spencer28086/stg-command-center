@@ -152,9 +152,18 @@ function RequestCard({ request }: { request: RequestInboxItem }) {
         <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-yellow-500/80">
           Details
         </h3>
-        <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-zinc-300">
+        <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-zinc-300">
           {displayValue(request.details)}
         </p>
+      </div>
+
+      <div className="mt-5 flex justify-end">
+        <Link
+          href={`/requests/${request.id}`}
+          className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-sm font-semibold text-yellow-100 transition hover:border-yellow-400/60 hover:bg-yellow-500/20"
+        >
+          View request
+        </Link>
       </div>
     </article>
   );
