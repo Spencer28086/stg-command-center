@@ -1,65 +1,143 @@
-import Image from "next/image";
+import {
+  AlertTriangle,
+  ClipboardList,
+  FileSignature,
+  Headphones,
+  RadioTower,
+  TrendingUp,
+  Users,
+  WalletCards,
+} from "lucide-react";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { AlertList } from "@/components/dashboard/AlertList";
+import { getDashboardSummary } from "@/server/queries/dashboard-summary";
 
-export default function Home() {
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
+}
+
+const alerts = [
+  {
+    title: "Database connection active",
+    description:
+      "STG Command Center is now reading summary data from the connected STG database.",
+    severity: "success" as const,
+  },
+  {
+    title: "Read-only mode",
+    description:
+      "Dashboard data is being read safely. No create, update, or delete actions are enabled yet.",
+    severity: "info" as const,
+  },
+  {
+    title: "Next phase",
+    description:
+      "After confirming the dashboard numbers, the next module should be the Requests Inbox.",
+    severity: "warning" as const,
+  },
+];
+
+export default async function DashboardPage() {
+  const summary = await getDashboardSummary();
+
+  const dashboardStats = [
+    {
+      title: "New Requests",
+      value: String(summary.newRequests),
+      detail: "Quote, system, and consultation requests",
+      icon: ClipboardList,
+    },
+    {
+      title: "Pending Agreements",
+      value: String(summary.pendingAgreements),
+      detail: "Awaiting client acceptance",
+      icon: FileSignature,
+    },
+    {
+      title: "Open Support",
+      value: String(summary.openSupport),
+      detail: "Active client support issues",
+      icon: Headphones,
+    },
+    {
+      title: "Active Subscriptions",
+      value: String(summary.activeSubscriptions),
+      detail: "Partnerships, care plans, and software",
+      icon: WalletCards,
+    },
+    {
+      title: "Monthly Recurring Revenue",
+      value: formatCurrency(summary.monthlyRecurringRevenue),
+      detail: "Partnerships plus active subscription plans",
+      icon: TrendingUp,
+    },
+    {
+      title: "Clients",
+      value: String(summary.clients),
+      detail: "Active STG client accounts",
+      icon: Users,
+    },
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="space-y-8">
+      <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-sm font-medium uppercase tracking-[0.35em] text-[#d4af37]">
+            Spencer Technology Group
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-5xl">
+            Command Center
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-stone-400 md:text-base">
+            Private operations dashboard for managing clients, requests,
+            subscriptions, agreements, support activity, revenue, and alerts.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="rounded-2xl border border-[#d4af37]/25 bg-[#d4af37]/10 px-4 py-3 text-sm text-[#f5d77b] shadow-[0_0_40px_rgba(212,175,55,0.08)]">
+          <div className="flex items-center gap-2">
+            <RadioTower className="h-4 w-4" />
+            <span>Live database read enabled</span>
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {dashboardStats.map((stat) => (
+          <StatCard key={stat.title} {...stat} />
+        ))}
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <div className="rounded-3xl border border-[#d4af37]/15 bg-black/45 p-6 shadow-2xl shadow-black/30">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl border border-[#d4af37]/25 bg-[#d4af37]/10 p-3">
+              <AlertTriangle className="h-5 w-5 text-[#f5d77b]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-white">
+                Action Items
+              </h2>
+              <p className="text-sm text-stone-400">
+                This will become the live review queue for the business.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-dashed border-[#d4af37]/15 bg-white/[0.02] p-8 text-center">
+            <p className="text-sm text-stone-400">
+              Requests, unsigned agreements, failed payments, and support
+              tickets will appear here once the notification layer is added.
+            </p>
+          </div>
+        </div>
+
+        <AlertList alerts={alerts} />
+      </section>
+    </main>
   );
 }

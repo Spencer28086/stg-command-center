@@ -1,0 +1,783 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(cuid())
+
+  email String @unique
+
+  // 🔥 NEW IDENTITY FIELDS
+  firstName    String?
+  lastName     String?
+  businessName String?
+
+  stripeCustomerId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  passwordHash String
+
+  verified Boolean @default(false)
+
+  verifyToken        String?   @unique
+  verifyTokenExpires DateTime?
+
+  resetToken        String?   @unique
+  resetTokenExpires DateTime?
+
+  role String @default("user")
+
+  // NEW
+  twoFactorEnabled    Boolean   @default(false)
+  twoFactorSecret     String?
+  twoFactorVerifiedAt DateTime?
+
+  // SOFT DELETE
+  deletedAt           DateTime?
+  nexusMemory         NexusMemoryContext?
+  deletionRequestedAt DateTime?
+
+  devices        Device[]
+  downloadGrants DownloadGrant[]
+  sessions       Session[]
+  subscriptions  Subscription[]
+  supportTickets SupportTicket[]
+
+  maintenanceAgreements MaintenanceAgreement[]
+
+  clientProjects ClientProject[]
+  qrCodes        QrCode[]
+}
+
+enum MarketingDraftStatus {
+  DRAFT
+  APPROVED
+  SCHEDULED
+  MANUALLY_POSTED
+  ARCHIVED
+}
+
+enum MarketingContentType {
+  POST
+  VIDEO_AD_SCRIPT
+}
+
+enum MarketingAutopilotMode {
+  DISABLED
+  TEST_MODE
+  APPROVAL_REQUIRED
+  TRUSTED_AUTOPILOT
+}
+
+enum MarketingReadinessStatus {
+  DRAFT_ONLY
+  NEEDS_REVIEW
+  APPROVED
+  AUTOPILOT_READY
+  BLOCKED_BY_RULE
+  MANUALLY_POSTED
+}
+
+enum MarketingSafetyStatus {
+  PASS
+  WARNING
+  BLOCKED
+}
+
+enum MarketingPublishStatus {
+  NOT_READY
+  READY
+  DRY_RUN_COMPLETE
+  FAILED_TEST
+  POSTED
+  POSTED_MANUALLY
+  FUTURE_AUTOPOST
+}
+
+model MarketingDraft {
+  id                 String                   @id @default(cuid())
+  title              String
+  campaignTitle      String?
+  campaignType       MarketingContentType     @default(POST)
+  platform           String
+  goal               String
+  tone               String
+  promptContext      Json                     @default("{}")
+  generatedContent   Json
+  status             MarketingDraftStatus     @default(DRAFT)
+  scheduledFor       DateTime?
+  postedAt           DateTime?
+  contentCategory    String?
+  autopilotReadiness MarketingReadinessStatus @default(DRAFT_ONLY)
+  publishStatus      MarketingPublishStatus   @default(NOT_READY)
+  lastDryRunAt       DateTime?
+  lastDryRunResult   Json?
+  externalPostId     String?
+  platformPayload    Json?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  safetyChecks MarketingDraftSafetyCheck[]
+  activityLogs MarketingActivityLog[]
+
+  @@index([status, createdAt])
+  @@index([status, scheduledFor])
+  @@index([createdAt])
+  @@index([autopilotReadiness, updatedAt])
+  @@index([publishStatus, updatedAt])
+}
+
+model MarketingAutopilotSettings {
+  id                                 String                 @id @default("default")
+  mode                               MarketingAutopilotMode @default(DISABLED)
+  emergencyPaused                    Boolean                @default(true)
+  maxPostsPerPlatformPerDay          Int                    @default(2)
+  maxTotalPostsPerDay                Int                    @default(4)
+  allowedPostingDays                 Json                   @default("[\"MONDAY\",\"TUESDAY\",\"WEDNESDAY\",\"THURSDAY\",\"FRIDAY\"]")
+  postingWindowStart                 String                 @default("09:00")
+  postingWindowEnd                   String                 @default("18:00")
+  minimumMinutesBetweenPosts         Int                    @default(120)
+  duplicateContentWindowDays         Int                    @default(30)
+  serviceCooldownDays                Int                    @default(3)
+  minimumValuePostsBetweenPromotions Int                    @default(1)
+  contentCategories                  Json                   @default("[\"Website Builds\",\"QR Codes\",\"Author Websites\",\"Business Systems\",\"Client Spotlights\",\"Care Plans\",\"Educational Tips\",\"Behind the Scenes\",\"Local Small Business Support\",\"Video Ads\",\"Launch Announcements\",\"Review Requests\"]")
+  requireApprovalForClientNames      Boolean                @default(true)
+  requireApprovalForDiscounts        Boolean                @default(true)
+  requireApprovalForTestimonials     Boolean                @default(true)
+  requireApprovalForGuarantees       Boolean                @default(true)
+  blockSensitiveTopics               Boolean                @default(true)
+  allowDryRunWhilePaused             Boolean                @default(false)
+  allowManualFacebookWhilePaused     Boolean                @default(false)
+  createdAt                          DateTime               @default(now())
+  updatedAt                          DateTime               @updatedAt
+}
+
+model MarketingDraftSafetyCheck {
+  id             String                @id @default(cuid())
+  draftId        String
+  status         MarketingSafetyStatus
+  issues         Json                  @default("[]")
+  suggestedFixes Json                  @default("[]")
+  createdAt      DateTime              @default(now())
+
+  draft MarketingDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  @@index([draftId, createdAt])
+  @@index([status, createdAt])
+}
+
+model MarketingActivityLog {
+  id         String   @id @default(cuid())
+  action     String
+  message    String
+  details    Json?
+  draftId    String?
+  actorId    String?
+  actorEmail String?
+  createdAt  DateTime @default(now())
+
+  draft MarketingDraft? @relation(fields: [draftId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([draftId, createdAt])
+  @@index([action, createdAt])
+}
+
+enum QrCodeStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+model QrCode {
+  id             String       @id @default(cuid())
+  userId         String
+  name           String
+  slug           String       @unique
+  destinationUrl String       @db.Text
+  status         QrCodeStatus @default(ACTIVE)
+  design         Json         @default("{}")
+  scanCount      Int          @default(0)
+  lastScannedAt  DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  user  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scans QrScan[]
+
+  @@index([userId, createdAt])
+  @@index([userId, status])
+}
+
+model QrScan {
+  id        String   @id @default(cuid())
+  qrCodeId  String
+  scannedAt DateTime @default(now())
+  ipHash    String?
+  userAgent String?  @db.Text
+  referrer  String?  @db.Text
+  country   String?
+
+  qrCode QrCode @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+
+  @@index([qrCodeId, scannedAt])
+  @@index([scannedAt])
+}
+
+model Session {
+  id                    String    @id @default(cuid())
+  userId                String
+  refreshTokenHash      String    @unique
+  createdAt             DateTime  @default(now())
+  ip                    String?
+  refreshTokenExpiresAt DateTime
+  userAgent             String?
+  revokedAt             DateTime?
+  lastUsedAt            DateTime?
+  rotatedFromSessionId  String?
+  rotatedFromSession    Session?  @relation("SessionRotation", fields: [rotatedFromSessionId], references: [id])
+  rotations             Session[] @relation("SessionRotation")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Device {
+  id          String   @id @default(cuid())
+  userId      String
+  deviceId    String
+  deviceToken String   @unique
+  lastSeen    DateTime
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+}
+
+model App {
+  id           String            @id @default(cuid())
+  slug         String            @unique
+  name         String
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  entitlements PlanEntitlement[]
+}
+
+model Plan {
+  id            String            @id @default(cuid())
+  slug          String            @unique
+  name          String
+  displayPrice  String?
+  trialDays     Int?
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  entitlements  PlanEntitlement[]
+  stripePrices  StripePrice[]
+  subscriptions Subscription[]
+}
+
+model PlanEntitlement {
+  id     String @id @default(cuid())
+  planId String
+  appId  String
+  tier   String @default("standard")
+  app    App    @relation(fields: [appId], references: [id], onDelete: Cascade)
+  plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, appId])
+  @@index([appId])
+}
+
+model StripePrice {
+  id              String   @id @default(cuid())
+  planId          String
+  stripePriceId   String   @unique
+  stripeProductId String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  plan            Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([stripeProductId])
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String
+  stripeSubscriptionId String    @unique
+  status               String
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean   @default(false)
+  trialEnd             DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  planId               String
+  stripeCustomerId     String?
+  plan                 Plan      @relation(fields: [planId], references: [id])
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([planId])
+}
+
+model StripeEvent {
+  id        String   @id
+  createdAt DateTime @default(now())
+}
+
+model DownloadGrant {
+  id               String    @id @default(cuid())
+  userId           String
+  productSlug      String
+  fileKey          String
+  expiresAt        DateTime
+  usedAt           DateTime?
+  ipAddress        String?
+  userAgent        String?
+  createdAt        DateTime  @default(now())
+  downloadCount    Int       @default(0)
+  lastDownloadedAt DateTime?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Waitlist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model CaseStudyTestimonial {
+  id        String   @id @default(uuid())
+  project   String
+  quote     String
+  name      String
+  role      String
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SystemRequest {
+  id           String   @id @default(uuid())
+  name         String
+  email        String
+  business     String?
+  referralCode String?
+  type         String
+  details      String
+  budget       String?
+  createdAt    DateTime @default(now())
+  contacted    Boolean  @default(false)
+
+  followUp1Sent     Boolean   @default(false)
+  followUp2Sent     Boolean   @default(false)
+  followUpFinalSent Boolean   @default(false)
+  respondedAt       DateTime?
+
+  clientProjects ClientProject[]
+}
+
+model SupportTicket {
+  id           String    @id @default(uuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  name         String
+  email        String
+  businessName String?
+  category     String
+  subject      String
+  message      String
+  status       String    @default("OPEN")
+  priority     String    @default("NORMAL")
+  userId       String?
+  resolvedAt   DateTime?
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model AppDownload {
+  id          String   @id @default(cuid())
+  slug        String?  @unique
+  name        String
+  description String?
+  version     String?
+  fileUrl     String
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+//
+// 🔥 MAINTENANCE AGREEMENTS
+//
+
+model MaintenanceAgreement {
+  id String @id @default(cuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  status String @default("PENDING_SIGNATURE")
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  businessName     String
+  clientName       String
+  clientEmail      String
+  projectTier      String?
+  paymentStructure String?
+  carePlan         String?
+  timeline         String?
+  depositAmount    String?
+  monthlyAmount    String?
+  internalNotes    String?
+
+  agreementVersion String @default("v1")
+
+  signatureText String?
+  signedAt      DateTime?
+
+  signingIp        String?
+  signingUserAgent String?
+
+  secureToken String @unique
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+
+  pdfUrl String?
+
+  projectValue      Decimal? @db.Decimal(10, 2)
+  partnershipCredit Decimal? @db.Decimal(10, 2)
+  partnershipPlan   String?
+  partnershipRate   Decimal? @db.Decimal(10, 2)
+  referralCode      String?
+
+  deposit            Decimal? @db.Decimal(10, 2)
+  amountDueAtSigning Decimal? @db.Decimal(10, 2)
+
+  // ==========================================
+  // REFERRAL PROGRAM
+  // ==========================================
+
+  referralEligible Boolean @default(false)
+
+  referralRewardAmount Int @default(0)
+
+  referralMaxCount Int @default(0)
+
+  referralMaxCredit Int @default(0)
+
+  successfulReferrals Int @default(0)
+
+  referralCreditsEarned Int @default(0)
+
+  // ==========================================
+  // 🔥 ONBOARDING LIFECYCLE
+  // ==========================================
+
+  domainAccessComplete      Boolean @default(false)
+  hostingAccessComplete     Boolean @default(false)
+  dnsVerificationComplete   Boolean @default(false)
+  emailVerificationComplete Boolean @default(false)
+  adminAccessConfirmed      Boolean @default(false)
+  maintenanceActivated      Boolean @default(false)
+
+  onboardingCompletedAt DateTime?
+  onboardingNotes       String?
+  activatedAt           DateTime?
+
+  audits MaintenanceAgreementAudit[]
+
+  @@index([clientEmail])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MaintenanceAgreementAudit {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  agreementId String
+  agreement   MaintenanceAgreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+
+  event     String
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+
+  @@index([agreementId])
+  @@index([createdAt])
+}
+
+//
+// 🔥 STG PROJECT ONBOARDING AGREEMENTS
+//
+
+model ClientProject {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  status String @default("DRAFT")
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  sourceRequestId String?
+  sourceRequest   SystemRequest? @relation(fields: [sourceRequestId], references: [id], onDelete: SetNull)
+
+  clientName   String
+  clientEmail  String
+  businessName String?
+
+  projectName        String
+  projectDescription String?
+
+  selectedBuildTier String
+  projectType       String?
+  totalProjectCost  Int
+  depositAmount     Int?
+  monthlyPayment    Int?
+  paymentStructure  String  @default("PAY_IN_FULL")
+
+  carePlanTier    String?
+  carePlanMonthly Int?
+
+  estimatedStartDate  DateTime?
+  estimatedLaunchDate DateTime?
+  timelineSummary     String?
+  scopeSummary        String?
+  includedFeatures    Json      @default("[]")
+
+  agreementVersion String @default("v1")
+
+  onboardingToken          String    @unique
+  onboardingTokenExpiresAt DateTime?
+  onboardingViewedAt       DateTime?
+
+  acceptedAt  DateTime?
+  completedAt DateTime?
+
+  stripeCustomerId        String?
+  stripeCheckoutSessionId String?
+  stripePaymentIntentId   String?
+  stripeSubscriptionId    String?
+
+  pdfUrl        String?
+  internalNotes String?
+
+  proposal            ProjectProposal?
+  agreementAcceptance AgreementAcceptance?
+  audits              ClientProjectAudit[]
+
+  @@index([userId])
+  @@index([sourceRequestId])
+  @@index([clientEmail])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ProjectProposal {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectId String        @unique
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  proposalVersion String @default("v1")
+  status          String @default("DRAFT")
+
+  buildTier        String
+  projectType      String?
+  totalCost        Int
+  depositAmount    Int?
+  monthlyPayment   Int?
+  paymentStructure String  @default("PAY_IN_FULL")
+
+  carePlanTier    String?
+  carePlanMonthly Int?
+
+  scopeSummary    String?
+  deliverables    Json    @default("[]")
+  excludedItems   Json    @default("[]")
+  timelineSummary String?
+  warrantySummary String?
+
+  approvedByStgAt    DateTime?
+  sentToClientAt     DateTime?
+  acceptedByClientAt DateTime?
+
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AgreementAcceptance {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  projectId String        @unique
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  agreementVersion String @default("v1")
+
+  legalName     String
+  businessName  String?
+  signatureText String
+  acceptedTerms Boolean @default(false)
+
+  acceptedAt DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?
+
+  projectSnapshot   Json
+  agreementSnapshot Json
+
+  pdfUrl String?
+
+  @@index([projectId])
+  @@index([acceptedAt])
+}
+
+model ClientProjectAudit {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  projectId String
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  event     String
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+// NEXUS MEMORY SYNC
+model NexusMemoryContext {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferredName      String?
+  role               String   @default("user")
+  communicationStyle String   @default("balanced")
+  relationships      Json     @default("[]")
+  observations       Json     @default("[]")
+  corrections        Json     @default("[]")
+  lastSyncedAt       DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Nexus visitor tracking
+model VisitorSession {
+  id         String     @id @default(cuid())
+  visitorId  String // client-generated, sessionStorage
+  userId     String? // null for anonymous
+  startedAt  DateTime   @default(now())
+  lastSeenAt DateTime   @default(now())
+  ip         String?
+  userAgent  String?
+  referrer   String?
+  country    String?
+  pageViews  PageView[]
+
+  @@index([visitorId])
+  @@index([userId])
+  @@index([startedAt])
+}
+
+// One record per page view. Linked to a VisitorSession.
+// duration is updated when the visitor leaves the page (beforeunload / next navigation).
+
+model PageView {
+  id               String         @id @default(cuid())
+  visitorSessionId String
+  visitorSession   VisitorSession @relation(fields: [visitorSessionId], references: [id], onDelete: Cascade)
+  page             String // e.g. "/", "/services", "/subscribe"
+  surface          String? // e.g. "home", "plans", "contact"
+  referrer         String? // referrer for this specific page
+  enteredAt        DateTime       @default(now())
+  exitedAt         DateTime? // null if still on page
+  durationSeconds  Int? // filled on exit
+  scrollDepth      Int? // 0-100 percent
+
+  @@index([visitorSessionId])
+  @@index([page])
+  @@index([enteredAt])
+}
+
+model ClientAccount {
+  id String @id @default(cuid())
+
+  accountNumber String @unique
+  agreementId   String @unique
+
+  clientName   String
+  clientEmail  String
+  businessName String?
+
+  agreementNumber String?
+  packetNumber    String?
+  capUrl          String?
+
+  originalProjectValue  Decimal @db.Decimal(10, 2)
+  partnershipCredit     Decimal @default(0) @db.Decimal(10, 2)
+  currentProjectBalance Decimal @db.Decimal(10, 2)
+
+  partnershipPlan String?
+  partnershipRate Decimal? @db.Decimal(10, 2)
+
+  referralCode String?
+  status       String  @default("ACTIVE")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ledgerEntries AccountLedger[]
+
+  @@index([clientEmail])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AccountLedger {
+  id String @id @default(cuid())
+
+  accountId     String
+  clientAccount ClientAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  type         String
+  amount       Decimal @db.Decimal(10, 2)
+  description  String
+  balanceAfter Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
+  @@index([accountId])
+  @@index([createdAt])
+  @@index([type])
+}
