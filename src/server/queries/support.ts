@@ -90,6 +90,15 @@ export async function getSupportInbox(filter: SupportInboxFilter = "all") {
     };
 }
 
+export async function getSupportTicketById(id: string) {
+    return prisma.supportTicket.findUnique({
+        where: {
+            id,
+        },
+        select: supportTicketSelect,
+    });
+}
+
 export function normalizeSupportInboxFilter(
     value: string | string[] | undefined,
 ): SupportInboxFilter {

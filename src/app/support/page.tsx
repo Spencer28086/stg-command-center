@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   getSupportInbox,
   normalizeSupportInboxFilter,
-  type SupportInboxFilter,
   type SupportInboxItem,
 } from "@/server/queries/support";
 
@@ -189,6 +188,15 @@ function SupportTicketCard({ ticket }: { ticket: SupportInboxItem }) {
           replies, priority changes, and resolution actions will be added in a
           later phase.
         </p>
+      </div>
+
+      <div className="mt-5 flex justify-end">
+        <Link
+          href={`/support/${ticket.id}`}
+          className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-sm font-semibold text-yellow-100 transition hover:border-yellow-400/60 hover:bg-yellow-500/20"
+        >
+          View ticket
+        </Link>
       </div>
     </article>
   );

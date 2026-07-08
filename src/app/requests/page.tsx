@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   getRequestsInbox,
   normalizeRequestInboxFilter,
-  type RequestInboxFilter,
   type RequestInboxItem,
 } from "@/server/queries/requests";
 
