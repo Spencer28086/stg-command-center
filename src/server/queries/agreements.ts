@@ -38,40 +38,46 @@ export async function getAgreementsInbox(
                         ? { status: "CANCELLED" }
                         : {};
 
-    const [agreements, totalCount, pendingCount, signedCount, activeCount, cancelledCount] =
-        await prisma.$transaction([
-            prisma.maintenanceAgreement.findMany({
-                where,
-                select: agreementInboxSelect,
-                orderBy: {
-                    createdAt: "desc",
+    const [
+        agreements,
+        totalCount,
+        pendingCount,
+        signedCount,
+        activeCount,
+        cancelledCount,
+    ] = await prisma.$transaction([
+        prisma.maintenanceAgreement.findMany({
+            where,
+            select: agreementInboxSelect,
+            orderBy: {
+                createdAt: "desc",
+            },
+            take: 100,
+        }),
+        prisma.maintenanceAgreement.count(),
+        prisma.maintenanceAgreement.count({
+            where: {
+                status: "PENDING_SIGNATURE",
+            },
+        }),
+        prisma.maintenanceAgreement.count({
+            where: {
+                signedAt: {
+                    not: null,
                 },
-                take: 100,
-            }),
-            prisma.maintenanceAgreement.count(),
-            prisma.maintenanceAgreement.count({
-                where: {
-                    status: "PENDING_SIGNATURE",
-                },
-            }),
-            prisma.maintenanceAgreement.count({
-                where: {
-                    signedAt: {
-                        not: null,
-                    },
-                },
-            }),
-            prisma.maintenanceAgreement.count({
-                where: {
-                    status: "ACTIVE",
-                },
-            }),
-            prisma.maintenanceAgreement.count({
-                where: {
-                    status: "CANCELLED",
-                },
-            }),
-        ]);
+            },
+        }),
+        prisma.maintenanceAgreement.count({
+            where: {
+                status: "ACTIVE",
+            },
+        }),
+        prisma.maintenanceAgreement.count({
+            where: {
+                status: "CANCELLED",
+            },
+        }),
+    ]);
 
     return {
         agreements,
@@ -83,6 +89,15 @@ export async function getAgreementsInbox(
             cancelled: cancelledCount,
         },
     };
+}
+
+export async function getAgreementById(id: string) {
+    return prisma.maintenanceAgreement.findUnique({
+        where: {
+            id,
+        },
+        select: agreementInboxSelect,
+    });
 }
 
 export function normalizeAgreementInboxFilter(

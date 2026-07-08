@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   getAgreementsInbox,
   normalizeAgreementInboxFilter,
-  type AgreementInboxFilter,
   type AgreementInboxItem,
 } from "@/server/queries/agreements";
 
@@ -15,6 +14,13 @@ type AgreementsPageProps = {
     status?: string | string[];
   };
 };
+
+type MoneyValue =
+  | AgreementInboxItem["partnershipRate"]
+  | AgreementInboxItem["monthlyAmount"]
+  | number
+  | null
+  | undefined;
 
 export const dynamic = "force-dynamic";
 
@@ -184,9 +190,18 @@ function AgreementCard({
           Read-Only Agreement Record
         </h3>
         <p className="mt-3 text-sm leading-6 text-zinc-300">
-          This card reflects the current MaintenanceAgreement record. Management
+          This card reflects the current maintenance agreement record. Management
           actions will be added in a later phase.
         </p>
+      </div>
+
+      <div className="mt-5 flex justify-end">
+        <Link
+          href={`/agreements/${agreement.id}`}
+          className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-sm font-semibold text-yellow-100 transition hover:border-yellow-400/60 hover:bg-yellow-500/20"
+        >
+          View agreement
+        </Link>
       </div>
     </article>
   );
@@ -268,15 +283,22 @@ function formatStatus(status: string) {
     .join(" ");
 }
 
-function formatMoney(value: number | null | undefined) {
+function formatMoney(value: MoneyValue) {
   if (value === null || value === undefined) {
+    return "—";
+  }
+
+  const amount =
+    typeof value === "number" ? value : Number(value.toString());
+
+  if (!Number.isFinite(amount)) {
     return "—";
   }
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(value);
+  }).format(amount);
 }
 
 function formatDate(date: Date) {
