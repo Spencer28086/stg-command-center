@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { formatDateOnly } from "@/lib/formatters";
 import {
   getSearchTerm,
   searchCommandCenter,
@@ -164,7 +165,7 @@ function SearchResultGroup({
                 <div className="flex shrink-0 items-center gap-2 text-xs text-zinc-500">
                   <span>{item.label}</span>
                   <span>·</span>
-                  <span>{formatDate(item.createdAt)}</span>
+                  <span>{formatDateOnly(item.createdAt)}</span>
                 </div>
               </div>
             </Link>
@@ -192,12 +193,4 @@ function EmptyState({
       <p className="mt-2 text-sm text-zinc-400">{description}</p>
     </section>
   );
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
 }

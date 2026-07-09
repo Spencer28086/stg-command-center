@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { displayValue } from "@/lib/formatters";
 import { prisma } from "@/lib/prisma";
 
 export type SearchResultItem = {
@@ -25,10 +26,6 @@ const emptyResults: GlobalSearchResults = {
     supportTickets: [],
     subscriptions: [],
 };
-
-function displayValue(value: string | null | undefined, fallback = "Unknown") {
-    return value && value.trim().length > 0 ? value : fallback;
-}
 
 function normalizeSearchTerm(query: string | string[] | undefined) {
     const value = Array.isArray(query) ? query[0] : query;

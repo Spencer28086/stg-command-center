@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MetaItem } from "@/components/ui/MetaItem";
+import { SummaryItem } from "@/components/ui/SummaryItem";
+import { displayValue, formatDate, formatMoney, formatStatus } from "@/lib/formatters";
 import {
     getClientProfileByAgreementId,
     type ClientAgreementItem,
@@ -123,17 +126,17 @@ function ClientAgreementPanel({
             </div>
 
             <dl className="mt-5 grid gap-4 md:grid-cols-2">
-                <DetailField label="Client Name" value={agreement.clientName} />
-                <DetailField label="Business Name" value={agreement.businessName} />
-                <DetailField label="Client Email" value={agreement.clientEmail} />
-                <DetailField label="Agreement Status" value={formatStatus(agreement.status)} />
-                <DetailField label="Monthly Rate" value={formatMoney(monthlyValue)} />
-                <DetailField
+                <MetaItem label="Client Name" value={agreement.clientName} />
+                <MetaItem label="Business Name" value={agreement.businessName} />
+                <MetaItem label="Client Email" value={agreement.clientEmail} />
+                <MetaItem label="Agreement Status" value={formatStatus(agreement.status)} />
+                <MetaItem label="Monthly Rate" value={formatMoney(monthlyValue)} />
+                <MetaItem
                     label="Signed Date"
                     value={agreement.signedAt ? formatDate(agreement.signedAt) : "—"}
                 />
-                <DetailField label="Created Date" value={formatDate(agreement.createdAt)} />
-                <DetailField label="Agreement ID" value={agreement.id} />
+                <MetaItem label="Created Date" value={formatDate(agreement.createdAt)} />
+                <MetaItem label="Agreement ID" value={agreement.id} />
             </dl>
         </section>
     );
@@ -315,44 +318,6 @@ function ReadOnlyNotice() {
     );
 }
 
-function DetailField({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | null | undefined;
-}) {
-    return (
-        <div className="rounded-xl border border-zinc-800 bg-black/20 p-4">
-            <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                {label}
-            </dt>
-            <dd className="mt-2 break-words text-sm text-zinc-200">
-                {displayValue(value)}
-            </dd>
-        </div>
-    );
-}
-
-function SummaryItem({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | null | undefined;
-}) {
-    return (
-        <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                {label}
-            </p>
-            <p className="mt-1 break-words text-sm text-zinc-200">
-                {displayValue(value)}
-            </p>
-        </div>
-    );
-}
-
 function AgreementStatusBadge({
     status,
     signedAt,
@@ -381,43 +346,4 @@ function AgreementStatusBadge({
             {formatStatus(status)}
         </span>
     );
-}
-
-function displayValue(value: string | null | undefined, fallback = "—") {
-    return value && value.trim().length > 0 ? value : fallback;
-}
-
-function formatStatus(status: string) {
-    return status
-        .split("_")
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-        .join(" ");
-}
-
-function formatMoney(value: ClientMoneyValue) {
-    if (value === null || value === undefined) {
-        return "—";
-    }
-
-    const amount =
-        typeof value === "number" ? value : Number(value.toString());
-
-    if (!Number.isFinite(amount)) {
-        return "—";
-    }
-
-    return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-    }).format(amount);
-}
-
-function formatDate(date: Date) {
-    return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-    }).format(date);
 }

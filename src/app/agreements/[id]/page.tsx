@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MetaItem } from "@/components/ui/MetaItem";
+import { SummaryItem } from "@/components/ui/SummaryItem";
+import { displayValue, formatDate, formatMoney, formatStatus } from "@/lib/formatters";
 import {
     getAgreementById,
     type AgreementInboxItem,
@@ -14,13 +17,6 @@ type AgreementDetailPageProps = {
         id: string;
     };
 };
-
-type MoneyValue =
-    | AgreementInboxItem["partnershipRate"]
-    | AgreementInboxItem["monthlyAmount"]
-    | number
-    | null
-    | undefined;
 
 export const dynamic = "force-dynamic";
 
@@ -104,17 +100,17 @@ function AgreementDetailsPanel({
             </h2>
 
             <dl className="mt-5 grid gap-4 md:grid-cols-2">
-                <DetailField label="Client Name" value={agreement.clientName} />
-                <DetailField label="Business Name" value={agreement.businessName} />
-                <DetailField label="Client Email" value={agreement.clientEmail} />
-                <DetailField label="Status" value={formatStatus(agreement.status)} />
-                <DetailField label="Monthly Rate" value={formatMoney(monthlyValue)} />
-                <DetailField
+                <MetaItem label="Client Name" value={agreement.clientName} />
+                <MetaItem label="Business Name" value={agreement.businessName} />
+                <MetaItem label="Client Email" value={agreement.clientEmail} />
+                <MetaItem label="Status" value={formatStatus(agreement.status)} />
+                <MetaItem label="Monthly Rate" value={formatMoney(monthlyValue)} />
+                <MetaItem
                     label="Signed Date"
                     value={agreement.signedAt ? formatDate(agreement.signedAt) : "—"}
                 />
-                <DetailField label="Created Date" value={formatDate(agreement.createdAt)} />
-                <DetailField label="Agreement ID" value={agreement.id} />
+                <MetaItem label="Created Date" value={formatDate(agreement.createdAt)} />
+                <MetaItem label="Agreement ID" value={agreement.id} />
             </dl>
 
             <div className="mt-5 rounded-xl border border-yellow-500/15 bg-yellow-500/5 p-4">
@@ -138,7 +134,10 @@ function SummaryCard({
     monthlyValue,
 }: {
     agreement: AgreementInboxItem;
-    monthlyValue: MoneyValue;
+    monthlyValue:
+    | AgreementInboxItem["partnershipRate"]
+    | AgreementInboxItem["monthlyAmount"]
+    | null;
 }) {
     return (
         <section className="rounded-2xl border border-zinc-800 bg-zinc-950/70 p-5 shadow-lg shadow-black/20">
@@ -167,44 +166,6 @@ function ReadOnlyNotice() {
                 actions will be added in later phases.
             </p>
         </section>
-    );
-}
-
-function DetailField({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | null | undefined;
-}) {
-    return (
-        <div className="rounded-xl border border-zinc-800 bg-black/20 p-4">
-            <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                {label}
-            </dt>
-            <dd className="mt-2 break-words text-sm text-zinc-200">
-                {displayValue(value)}
-            </dd>
-        </div>
-    );
-}
-
-function SummaryItem({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | null | undefined;
-}) {
-    return (
-        <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                {label}
-            </p>
-            <p className="mt-1 break-words text-sm text-zinc-200">
-                {displayValue(value)}
-            </p>
-        </div>
     );
 }
 
@@ -254,41 +215,3 @@ function AgreementStatusBadge({
     );
 }
 
-function displayValue(value: string | null | undefined) {
-    return value && value.trim().length > 0 ? value : "—";
-}
-
-function formatStatus(status: string) {
-    return status
-        .split("_")
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-        .join(" ");
-}
-
-function formatMoney(value: MoneyValue) {
-    if (value === null || value === undefined) {
-        return "—";
-    }
-
-    const amount =
-        typeof value === "number" ? value : Number(value.toString());
-
-    if (!Number.isFinite(amount)) {
-        return "—";
-    }
-
-    return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-    }).format(amount);
-}
-
-function formatDate(date: Date) {
-    return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-    }).format(date);
-}

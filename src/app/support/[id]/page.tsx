@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MetaItem } from "@/components/ui/MetaItem";
+import { SummaryItem } from "@/components/ui/SummaryItem";
+import { displayValue, formatDate, formatStatus } from "@/lib/formatters";
 import {
     getSupportTicketById,
     type SupportInboxItem,
@@ -85,20 +88,20 @@ function SupportTicketDetailsPanel({ ticket }: { ticket: SupportInboxItem }) {
             </h2>
 
             <dl className="mt-5 grid gap-4 md:grid-cols-2">
-                <DetailField label="Subject" value={ticket.subject} />
-                <DetailField label="Name" value={ticket.name} />
-                <DetailField label="Business Name" value={ticket.businessName} />
-                <DetailField label="Email" value={ticket.email} />
-                <DetailField label="Category" value={ticket.category} />
-                <DetailField label="Status" value={formatStatus(ticket.status)} />
-                <DetailField label="Priority" value={formatStatus(ticket.priority)} />
-                <DetailField label="Created Date" value={formatDate(ticket.createdAt)} />
-                <DetailField label="Updated Date" value={formatDate(ticket.updatedAt)} />
-                <DetailField
+                <MetaItem label="Subject" value={ticket.subject} />
+                <MetaItem label="Name" value={ticket.name} />
+                <MetaItem label="Business Name" value={ticket.businessName} />
+                <MetaItem label="Email" value={ticket.email} />
+                <MetaItem label="Category" value={ticket.category} />
+                <MetaItem label="Status" value={formatStatus(ticket.status)} />
+                <MetaItem label="Priority" value={formatStatus(ticket.priority)} />
+                <MetaItem label="Created Date" value={formatDate(ticket.createdAt)} />
+                <MetaItem label="Updated Date" value={formatDate(ticket.updatedAt)} />
+                <MetaItem
                     label="Resolved Date"
                     value={ticket.resolvedAt ? formatDate(ticket.resolvedAt) : "—"}
                 />
-                <DetailField label="Ticket ID" value={ticket.id} />
+                <MetaItem label="Ticket ID" value={ticket.id} />
             </dl>
 
             <div className="mt-5 rounded-xl border border-zinc-800 bg-black/20 p-4">
@@ -142,44 +145,6 @@ function ReadOnlyNotice() {
                 added in a later phase.
             </p>
         </section>
-    );
-}
-
-function DetailField({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | null | undefined;
-}) {
-    return (
-        <div className="rounded-xl border border-zinc-800 bg-black/20 p-4">
-            <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                {label}
-            </dt>
-            <dd className="mt-2 break-words text-sm text-zinc-200">
-                {displayValue(value)}
-            </dd>
-        </div>
-    );
-}
-
-function SummaryItem({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | null | undefined;
-}) {
-    return (
-        <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                {label}
-            </p>
-            <p className="mt-1 break-words text-sm text-zinc-200">
-                {displayValue(value)}
-            </p>
-        </div>
     );
 }
 
@@ -235,25 +200,4 @@ function PriorityBadge({ priority }: { priority: string }) {
             {formatStatus(priority)}
         </span>
     );
-}
-
-function displayValue(value: string | null | undefined) {
-    return value && value.trim().length > 0 ? value : "—";
-}
-
-function formatStatus(status: string) {
-    return status
-        .split("_")
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-        .join(" ");
-}
-
-function formatDate(date: Date) {
-    return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-    }).format(date);
 }

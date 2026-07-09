@@ -17,13 +17,7 @@ import {
   type DashboardActionQueueItem,
 } from "@/server/queries/dashboard-action-queue";
 import { getDashboardSummary } from "@/server/queries/dashboard-summary";
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(value);
-}
+import { formatMoney, formatShortDate } from "@/lib/formatters";
 
 const alerts = [
   {
@@ -79,7 +73,7 @@ export default async function DashboardPage() {
     },
     {
       title: "Monthly Recurring Revenue",
-      value: formatCurrency(summary.monthlyRecurringRevenue),
+      value: formatMoney(summary.monthlyRecurringRevenue),
       detail: "Partnerships plus active subscription plans",
       icon: TrendingUp,
     },
@@ -225,7 +219,7 @@ function ActionQueueRow({ item }: { item: DashboardActionQueueItem }) {
             {item.title}
           </p>
           <span className="shrink-0 text-xs text-stone-500">
-            {formatDate(item.createdAt)}
+            {formatShortDate(item.createdAt)}
           </span>
         </div>
         <p className="mt-1 break-words text-sm leading-6 text-stone-400">
@@ -253,11 +247,4 @@ function getQueueToneClassName(tone: DashboardActionQueueItem["tone"]) {
   }
 
   return "border-[#d4af37]/25 bg-[#d4af37]/10 text-[#f5d77b]";
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-  }).format(date);
 }

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { displayValue } from "@/lib/formatters";
 
 export type DashboardActionQueueItem = {
     id: string;
@@ -17,10 +18,6 @@ export type DashboardActionQueue = {
     trialingSubscriptions: DashboardActionQueueItem[];
     recentlySigned: DashboardActionQueueItem[];
 };
-
-function displayValue(value: string | null | undefined, fallback = "Unknown") {
-    return value && value.trim().length > 0 ? value : fallback;
-}
 
 function formatClientName(user: {
     firstName: string | null;

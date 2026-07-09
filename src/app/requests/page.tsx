@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { MetaItem } from "@/components/ui/MetaItem";
+import { displayValue, formatDate } from "@/lib/formatters";
 import {
   getRequestsInbox,
   normalizeRequestInboxFilter,
@@ -168,25 +170,6 @@ function RequestCard({ request }: { request: RequestInboxItem }) {
   );
 }
 
-function MetaItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | null;
-}) {
-  return (
-    <div className="rounded-xl border border-zinc-800 bg-black/20 p-4">
-      <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-        {label}
-      </dt>
-      <dd className="mt-2 break-words text-sm text-zinc-200">
-        {displayValue(value)}
-      </dd>
-    </div>
-  );
-}
-
 function ContactedBadge({ contacted }: { contacted: boolean }) {
   return contacted ? (
     <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
@@ -197,18 +180,4 @@ function ContactedBadge({ contacted }: { contacted: boolean }) {
       New
     </span>
   );
-}
-
-function displayValue(value: string | null | undefined) {
-  return value && value.trim().length > 0 ? value : "—";
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
 }

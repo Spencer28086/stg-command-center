@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { MetaItem } from "@/components/ui/MetaItem";
+import { displayValue, formatDate, formatMoney, formatStatus } from "@/lib/formatters";
 import {
   getAgreementsInbox,
   normalizeAgreementInboxFilter,
@@ -14,13 +16,6 @@ type AgreementsPageProps = {
     status?: string | string[];
   };
 };
-
-type MoneyValue =
-  | AgreementInboxItem["partnershipRate"]
-  | AgreementInboxItem["monthlyAmount"]
-  | number
-  | null
-  | undefined;
 
 export const dynamic = "force-dynamic";
 
@@ -207,25 +202,6 @@ function AgreementCard({
   );
 }
 
-function MetaItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | null;
-}) {
-  return (
-    <div className="rounded-xl border border-zinc-800 bg-black/20 p-4">
-      <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-        {label}
-      </dt>
-      <dd className="mt-2 break-words text-sm text-zinc-200">
-        {displayValue(value)}
-      </dd>
-    </div>
-  );
-}
-
 function AgreementStatusBadge({
   status,
   signedAt,
@@ -270,43 +246,4 @@ function AgreementStatusBadge({
       {formatStatus(status)}
     </span>
   );
-}
-
-function displayValue(value: string | null | undefined) {
-  return value && value.trim().length > 0 ? value : "—";
-}
-
-function formatStatus(status: string) {
-  return status
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
-}
-
-function formatMoney(value: MoneyValue) {
-  if (value === null || value === undefined) {
-    return "—";
-  }
-
-  const amount =
-    typeof value === "number" ? value : Number(value.toString());
-
-  if (!Number.isFinite(amount)) {
-    return "—";
-  }
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
 }

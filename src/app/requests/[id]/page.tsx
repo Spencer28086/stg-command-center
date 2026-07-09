@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MetaItem } from "@/components/ui/MetaItem";
+import { SummaryItem } from "@/components/ui/SummaryItem";
+import { displayValue, formatDate } from "@/lib/formatters";
 import { getRequestById, type RequestInboxItem } from "@/server/queries/requests";
 
 type RequestDetailPageProps = {
@@ -81,17 +84,17 @@ function RequestDetailsPanel({ request }: { request: RequestInboxItem }) {
             </h2>
 
             <dl className="mt-5 grid gap-4 md:grid-cols-2">
-                <DetailField label="Name" value={request.name} />
-                <DetailField label="Business" value={request.business} />
-                <DetailField label="Email" value={request.email} />
-                <DetailField label="Type" value={request.type} />
-                <DetailField label="Referral Code" value={request.referralCode} />
-                <DetailField label="Budget" value={request.budget} />
-                <DetailField
+                <MetaItem label="Name" value={request.name} />
+                <MetaItem label="Business" value={request.business} />
+                <MetaItem label="Email" value={request.email} />
+                <MetaItem label="Type" value={request.type} />
+                <MetaItem label="Referral Code" value={request.referralCode} />
+                <MetaItem label="Budget" value={request.budget} />
+                <MetaItem
                     label="Contacted Status"
                     value={request.contacted ? "Contacted" : "New"}
                 />
-                <DetailField label="Created Date" value={formatDate(request.createdAt)} />
+                <MetaItem label="Created Date" value={formatDate(request.createdAt)} />
             </dl>
 
             <div className="mt-5 rounded-xl border border-zinc-800 bg-black/20 p-4">
@@ -138,44 +141,6 @@ function ReadOnlyNotice() {
     );
 }
 
-function DetailField({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | null | undefined;
-}) {
-    return (
-        <div className="rounded-xl border border-zinc-800 bg-black/20 p-4">
-            <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                {label}
-            </dt>
-            <dd className="mt-2 break-words text-sm text-zinc-200">
-                {displayValue(value)}
-            </dd>
-        </div>
-    );
-}
-
-function SummaryItem({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | null | undefined;
-}) {
-    return (
-        <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                {label}
-            </p>
-            <p className="mt-1 break-words text-sm text-zinc-200">
-                {displayValue(value)}
-            </p>
-        </div>
-    );
-}
-
 function ContactedBadge({ contacted }: { contacted: boolean }) {
     return contacted ? (
         <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
@@ -188,16 +153,3 @@ function ContactedBadge({ contacted }: { contacted: boolean }) {
     );
 }
 
-function displayValue(value: string | null | undefined) {
-    return value && value.trim().length > 0 ? value : "—";
-}
-
-function formatDate(date: Date) {
-    return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-    }).format(date);
-}

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { MetaItem } from "@/components/ui/MetaItem";
+import { displayValue, formatDate, formatStatus } from "@/lib/formatters";
 import {
   getSupportInbox,
   normalizeSupportInboxFilter,
@@ -202,25 +204,6 @@ function SupportTicketCard({ ticket }: { ticket: SupportInboxItem }) {
   );
 }
 
-function MetaItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | null;
-}) {
-  return (
-    <div className="rounded-xl border border-zinc-800 bg-black/20 p-4">
-      <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-        {label}
-      </dt>
-      <dd className="mt-2 break-words text-sm text-zinc-200">
-        {displayValue(value)}
-      </dd>
-    </div>
-  );
-}
-
 function StatusBadge({
   status,
   resolvedAt,
@@ -273,25 +256,4 @@ function PriorityBadge({ priority }: { priority: string }) {
       {formatStatus(priority)}
     </span>
   );
-}
-
-function displayValue(value: string | null | undefined) {
-  return value && value.trim().length > 0 ? value : "—";
-}
-
-function formatStatus(status: string) {
-  return status
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
 }
