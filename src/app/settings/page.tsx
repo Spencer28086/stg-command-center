@@ -1,3 +1,5 @@
+import { Activity } from "lucide-react";
+import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { DatabaseStatusCard } from "@/components/settings/DatabaseStatusCard";
 import { MetaItem } from "@/components/ui/MetaItem";
@@ -8,6 +10,15 @@ export default function SettingsPage() {
       <PageHeader
         title="Settings"
         description="Manage API connection settings, notification preferences, private app behavior, and future desktop options."
+        action={
+          <Link
+            href="/health"
+            className="flex items-center gap-2 rounded-2xl border border-[#d4af37]/25 bg-[#d4af37]/10 px-4 py-3 text-sm font-medium text-[#f5d77b] transition hover:border-[#d4af37]/45 hover:bg-[#d4af37]/20"
+          >
+            <Activity className="h-4 w-4" />
+            Open Site Health
+          </Link>
+        }
       />
 
       <DatabaseStatusCard />
