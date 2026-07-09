@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  Bell,
   ClipboardList,
   FileSignature,
   Headphones,
@@ -101,11 +102,23 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-[#d4af37]/25 bg-[#d4af37]/10 px-4 py-3 text-sm text-[#f5d77b] shadow-[0_0_40px_rgba(212,175,55,0.08)]">
-          <div className="flex items-center gap-2">
-            <RadioTower className="h-4 w-4" />
-            <span>Live database read enabled</span>
+        <div className="flex flex-col gap-3 sm:flex-row lg:items-center">
+          <div className="rounded-2xl border border-[#d4af37]/25 bg-[#d4af37]/10 px-4 py-3 text-sm text-[#f5d77b] shadow-[0_0_40px_rgba(212,175,55,0.08)]">
+            <div className="flex items-center gap-2">
+              <RadioTower className="h-4 w-4" />
+              <span>Live database read enabled</span>
+            </div>
           </div>
+
+          <Link
+            href="/notifications"
+            className="rounded-2xl border border-stone-800 bg-black/40 px-4 py-3 text-sm font-semibold text-stone-200 transition hover:border-[#d4af37]/35 hover:bg-[#d4af37]/10 hover:text-[#f5d77b]"
+          >
+            <span className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-[#d4af37]" />
+              Notifications feed
+            </span>
+          </Link>
         </div>
       </section>
 
@@ -136,26 +149,31 @@ export default async function DashboardPage() {
               title="New Requests"
               empty="No new requests need contact."
               items={actionQueue.newRequests}
+              href="/notifications?filter=requests"
             />
             <ActionQueueSection
               title="Pending Agreements"
               empty="No maintenance agreements are awaiting signature."
               items={actionQueue.pendingAgreements}
+              href="/notifications?filter=agreements"
             />
             <ActionQueueSection
               title="Support Watch"
               empty="No open or high-priority support tickets."
               items={actionQueue.openSupport}
+              href="/notifications?filter=support"
             />
             <ActionQueueSection
               title="Trialing Subscriptions"
               empty="No trialing subscriptions are currently active."
               items={actionQueue.trialingSubscriptions}
+              href="/notifications?filter=subscriptions"
             />
             <ActionQueueSection
               title="Recently Signed"
               empty="No signed agreements are available yet."
               items={actionQueue.recentlySigned}
+              href="/notifications?filter=agreements"
             />
           </div>
         </section>
@@ -170,10 +188,12 @@ function ActionQueueSection({
   title,
   empty,
   items,
+  href,
 }: {
   title: string;
   empty: string;
   items: DashboardActionQueueItem[];
+  href: string;
 }) {
   return (
     <section>
@@ -181,9 +201,17 @@ function ActionQueueSection({
         <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[#d4af37]/80">
           {title}
         </h3>
-        <span className="rounded-full border border-[#d4af37]/20 bg-[#d4af37]/10 px-2.5 py-1 text-xs font-semibold text-[#f5d77b]">
-          {items.length}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full border border-[#d4af37]/20 bg-[#d4af37]/10 px-2.5 py-1 text-xs font-semibold text-[#f5d77b]">
+            {items.length}
+          </span>
+          <Link
+            href={href}
+            className="text-xs font-semibold text-stone-500 transition hover:text-[#f5d77b]"
+          >
+            View all
+          </Link>
+        </div>
       </div>
 
       {items.length > 0 ? (
