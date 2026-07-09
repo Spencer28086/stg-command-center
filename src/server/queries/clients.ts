@@ -19,6 +19,57 @@ export type ClientAgreementItem = Prisma.MaintenanceAgreementGetPayload<{
     select: typeof clientAgreementSelect;
 }>;
 
+const relatedRequestSelect = {
+    id: true,
+    name: true,
+    business: true,
+    type: true,
+    contacted: true,
+    createdAt: true,
+} satisfies Prisma.SystemRequestSelect;
+
+const relatedSupportTicketSelect = {
+    id: true,
+    subject: true,
+    category: true,
+    status: true,
+    priority: true,
+    createdAt: true,
+} satisfies Prisma.SupportTicketSelect;
+
+const relatedSubscriptionSelect = {
+    id: true,
+    status: true,
+    createdAt: true,
+    updatedAt: true,
+    stripeCustomerId: true,
+    plan: {
+        select: {
+            name: true,
+            displayPrice: true,
+        },
+    },
+} satisfies Prisma.SubscriptionSelect;
+
+export type RelatedClientRequest = Prisma.SystemRequestGetPayload<{
+    select: typeof relatedRequestSelect;
+}>;
+
+export type RelatedClientSupportTicket = Prisma.SupportTicketGetPayload<{
+    select: typeof relatedSupportTicketSelect;
+}>;
+
+export type RelatedClientSubscription = Prisma.SubscriptionGetPayload<{
+    select: typeof relatedSubscriptionSelect;
+}>;
+
+export type ClientProfile = {
+    agreement: ClientAgreementItem;
+    requests: RelatedClientRequest[];
+    supportTickets: RelatedClientSupportTicket[];
+    subscriptions: RelatedClientSubscription[];
+};
+
 const signedAgreementWhere: Prisma.MaintenanceAgreementWhereInput = {
     OR: [
         { signedAt: { not: null } },
@@ -99,6 +150,79 @@ export async function getClientsFromSignedAgreements(
             active: activeCount,
         },
         monthlyRevenue,
+    };
+}
+
+export async function getClientProfileByAgreementId(
+    id: string,
+): Promise<ClientProfile | null> {
+    const agreement = await prisma.maintenanceAgreement.findFirst({
+        where: {
+            AND: [
+                {
+                    id,
+                },
+                signedAgreementWhere,
+            ],
+        },
+        select: clientAgreementSelect,
+    });
+
+    if (!agreement) {
+        return null;
+    }
+
+    const [requests, supportTickets, subscriptions] = await prisma.$transaction([
+        prisma.systemRequest.findMany({
+            where: {
+                email: {
+                    equals: agreement.clientEmail,
+                    mode: "insensitive",
+                },
+            },
+            select: relatedRequestSelect,
+            orderBy: {
+                createdAt: "desc",
+            },
+            take: 8,
+        }),
+        prisma.supportTicket.findMany({
+            where: {
+                email: {
+                    equals: agreement.clientEmail,
+                    mode: "insensitive",
+                },
+            },
+            select: relatedSupportTicketSelect,
+            orderBy: {
+                createdAt: "desc",
+            },
+            take: 8,
+        }),
+        prisma.subscription.findMany({
+            where: {
+                user: {
+                    is: {
+                        email: {
+                            equals: agreement.clientEmail,
+                            mode: "insensitive",
+                        },
+                    },
+                },
+            },
+            select: relatedSubscriptionSelect,
+            orderBy: {
+                createdAt: "desc",
+            },
+            take: 8,
+        }),
+    ]);
+
+    return {
+        agreement,
+        requests,
+        supportTickets,
+        subscriptions,
     };
 }
 

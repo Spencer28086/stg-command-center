@@ -5,6 +5,7 @@ import {
     FileSignature,
     Headphones,
     LayoutDashboard,
+    Search,
     Settings,
     Users,
     WalletCards,
@@ -18,6 +19,7 @@ export type NavItem = {
 
 export const navItems: NavItem[] = [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
+    { label: "Search", href: "/search", icon: Search },
     { label: "Clients", href: "/clients", icon: Users },
     { label: "Requests", href: "/requests", icon: ClipboardList },
     { label: "Subscriptions", href: "/subscriptions", icon: WalletCards },
