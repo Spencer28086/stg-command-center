@@ -39,26 +39,52 @@ export default async function SubscriptionsPage({
         <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-zinc-50">
-              Subscriptions
+              Product Subscriptions
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-              Read-only subscription view. Active subscriptions count only
-              active/ACTIVE records; trialing records are displayed separately.
+              Read-only view of product and app subscriptions. Website
+              partnerships and care plans are managed separately under
+              Agreements.
             </p>
           </div>
         </div>
       </section>
 
+      <section className="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-5 shadow-lg shadow-black/20">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-yellow-100">
+              Website Partnerships Are Under Agreements
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-yellow-100/80">
+              Monthly website partnerships and care plans, including signed
+              maintenance agreements, are tracked under Agreements. This page
+              only shows product/app subscription records.
+            </p>
+          </div>
+
+          <Link
+            href="/agreements"
+            className="inline-flex shrink-0 items-center justify-center rounded-full border border-yellow-500/40 bg-yellow-500/15 px-4 py-2 text-sm font-semibold text-yellow-100 transition hover:border-yellow-400/70 hover:bg-yellow-500/25"
+          >
+            View Agreements
+          </Link>
+        </div>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-3">
         <SummaryStat
-          label="Active Subscriptions"
+          label="Active Product Subscriptions"
           value={String(counts.active)}
         />
         <SummaryStat
-          label="Trialing Subscriptions"
+          label="Trialing Product Subscriptions"
           value={String(counts.trialing)}
         />
-        <SummaryStat label="All Subscriptions" value={String(counts.all)} />
+        <SummaryStat
+          label="All Product Subscriptions"
+          value={String(counts.all)}
+        />
       </section>
 
       <section className="flex flex-wrap gap-3">
@@ -99,11 +125,12 @@ export default async function SubscriptionsPage({
         ) : (
           <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-8 text-center">
             <h2 className="text-lg font-semibold text-zinc-100">
-              No subscriptions found
+              No product subscriptions found
             </h2>
             <p className="mt-2 text-sm text-zinc-400">
-              This filter does not currently have any matching Subscription
-              records.
+              This filter does not currently have any matching product/app
+              Subscription records. Website partnerships and care plans are
+              managed under Agreements.
             </p>
           </div>
         )}
