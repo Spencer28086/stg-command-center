@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { MetaItem } from "@/components/ui/MetaItem";
 import { SummaryItem } from "@/components/ui/SummaryItem";
 import { displayValue, formatDate } from "@/lib/formatters";
+import {
+    markRequestContacted,
+    markRequestUncontacted,
+} from "@/server/actions/requests";
 import { getRequestById, type RequestInboxItem } from "@/server/queries/requests";
 
 type RequestDetailPageProps = {
@@ -52,7 +56,7 @@ export default async function RequestDetailPage({
                         </div>
 
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                            Full read-only view of this SystemRequest record.
+                            Full administrative view of this SystemRequest record.
                         </p>
                     </div>
 
@@ -68,8 +72,8 @@ export default async function RequestDetailPage({
                 </div>
 
                 <aside className="space-y-4">
+                    <RequestActions request={request} />
                     <SummaryCard request={request} />
-                    <ReadOnlyNotice />
                 </aside>
             </section>
         </main>
@@ -110,6 +114,36 @@ function RequestDetailsPanel({ request }: { request: RequestInboxItem }) {
     );
 }
 
+function RequestActions({ request }: { request: RequestInboxItem }) {
+    const action = request.contacted
+        ? markRequestUncontacted.bind(null, request.id)
+        : markRequestContacted.bind(null, request.id);
+
+    return (
+        <section className="rounded-2xl border border-yellow-500/20 bg-zinc-950/70 p-5 shadow-lg shadow-black/20">
+            <h2 className="text-lg font-semibold text-zinc-50">Request Actions</h2>
+
+            <p className="mt-3 text-sm leading-6 text-zinc-400">
+                This only changes the contacted status. It does not email the client,
+                create an agreement, or delete the request.
+            </p>
+
+            <form action={action} className="mt-5">
+                <button
+                    type="submit"
+                    className={
+                        request.contacted
+                            ? "w-full rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-100 transition hover:border-yellow-500/30 hover:text-yellow-100"
+                            : "w-full rounded-full border border-yellow-500/40 bg-yellow-500/15 px-4 py-2.5 text-sm font-semibold text-yellow-100 transition hover:border-yellow-400/70 hover:bg-yellow-500/25"
+                    }
+                >
+                    {request.contacted ? "Mark New" : "Mark Contacted"}
+                </button>
+            </form>
+        </section>
+    );
+}
+
 function SummaryCard({ request }: { request: RequestInboxItem }) {
     return (
         <section className="rounded-2xl border border-zinc-800 bg-zinc-950/70 p-5 shadow-lg shadow-black/20">
@@ -121,22 +155,6 @@ function SummaryCard({ request }: { request: RequestInboxItem }) {
                 <SummaryItem label="Request Type" value={request.type} />
                 <SummaryItem label="Budget" value={request.budget} />
             </div>
-        </section>
-    );
-}
-
-function ReadOnlyNotice() {
-    return (
-        <section className="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-yellow-300">
-                Read-Only Phase
-            </h2>
-
-            <p className="mt-3 text-sm leading-6 text-yellow-100/80">
-                This detail view does not update request status, send emails, create
-                agreements, or modify the database. Those actions will be added in a
-                later phase.
-            </p>
         </section>
     );
 }

@@ -40,8 +40,8 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
               Support Tickets
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-              Read-only view of client support tickets submitted through the STG
-              website. Ticket management actions will be added in a later phase.
+              Client support tickets submitted through the STG website. Open a
+              ticket to resolve, reopen, or change priority.
             </p>
           </div>
 
@@ -183,12 +183,11 @@ function SupportTicketCard({ ticket }: { ticket: SupportInboxItem }) {
 
       <div className="mt-5 rounded-xl border border-yellow-500/15 bg-yellow-500/5 p-4">
         <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-yellow-500/80">
-          Read-Only Support Record
+          Controlled Support Record
         </h3>
         <p className="mt-3 text-sm leading-6 text-zinc-300">
-          This card reflects the current support ticket record. Status updates,
-          replies, priority changes, and resolution actions will be added in a
-          later phase.
+          This card reflects the current support ticket record. Open the ticket
+          detail page for safe internal status and priority actions.
         </p>
       </div>
 

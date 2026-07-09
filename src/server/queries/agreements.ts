@@ -16,6 +16,7 @@ const agreementInboxSelect = {
     status: true,
     partnershipRate: true,
     monthlyAmount: true,
+    internalNotes: true,
     signedAt: true,
     createdAt: true,
 } satisfies Prisma.MaintenanceAgreementSelect;

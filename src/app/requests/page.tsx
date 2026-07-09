@@ -37,8 +37,8 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
               Requests Inbox
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-              Read-only view of incoming quote and system requests from the STG
-              website. Write actions will be added in a later phase.
+              Incoming quote and system requests from the STG website. Open a
+              request to mark it contacted or new.
             </p>
           </div>
 

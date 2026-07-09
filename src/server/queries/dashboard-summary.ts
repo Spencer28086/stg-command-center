@@ -30,25 +30,6 @@ function parseMoneyValue(value: unknown): number {
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function normalizeMonthlyAmount(displayPrice: string | null | undefined): number {
-    if (!displayPrice) {
-        return 0;
-    }
-
-    const amount = parseMoneyValue(displayPrice);
-    const normalized = displayPrice.toLowerCase();
-
-    if (
-        normalized.includes("/year") ||
-        normalized.includes("yearly") ||
-        normalized.includes("annual")
-    ) {
-        return amount / 12;
-    }
-
-    return amount;
-}
-
 export async function getDashboardSummary(): Promise<DashboardSummary> {
     const [
         newRequests,
@@ -57,7 +38,6 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
         openSupport,
         activeSubscriptions,
         signedAgreements,
-        paidSubscriptions,
     ] = await Promise.all([
         prisma.systemRequest.count({
             where: {
@@ -81,9 +61,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
 
         prisma.supportTicket.count({
             where: {
-                status: {
-                    in: ["OPEN", "open"],
-                },
+                status: "OPEN",
             },
         }),
 
@@ -97,26 +75,14 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
 
         prisma.maintenanceAgreement.findMany({
             where: {
-                status: "SIGNED",
+                OR: [
+                    { signedAt: { not: null } },
+                    { status: { in: ["SIGNED", "signed", "ACTIVE", "active"] } },
+                ],
             },
             select: {
                 partnershipRate: true,
                 monthlyAmount: true,
-            },
-        }),
-
-        prisma.subscription.findMany({
-            where: {
-                status: {
-                    in: ["active", "ACTIVE"],
-                },
-            },
-            select: {
-                plan: {
-                    select: {
-                        displayPrice: true,
-                    },
-                },
             },
         }),
     ]);
@@ -128,16 +94,12 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
         return total + (partnershipRate || monthlyAmount);
     }, 0);
 
-    const subscriptionMrr = paidSubscriptions.reduce((total, subscription) => {
-        return total + normalizeMonthlyAmount(subscription.plan.displayPrice);
-    }, 0);
-
     return {
         newRequests,
         pendingAgreements: pendingMaintenanceAgreements + pendingProjectProposals,
         openSupport,
         activeSubscriptions,
         clients: signedAgreements.length,
-        monthlyRecurringRevenue: partnershipMrr + subscriptionMrr,
+        monthlyRecurringRevenue: partnershipMrr,
     };
 }

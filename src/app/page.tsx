@@ -28,9 +28,9 @@ const alerts = [
     severity: "success" as const,
   },
   {
-    title: "Read-only mode",
+    title: "Controlled write mode",
     description:
-      "Dashboard data is being read safely. No create, update, or delete actions are enabled yet.",
+      "Safe internal status updates are enabled for requests, support tickets, and agreement notes.",
     severity: "info" as const,
   },
   {
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
                 Action Items
               </h2>
               <p className="text-sm text-stone-400">
-                Read-only operational queue for today&apos;s follow-up work.
+                Operational queue for today&apos;s follow-up work.
               </p>
             </div>
           </div>

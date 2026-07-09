@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MetaItem } from "@/components/ui/MetaItem";
 import { SummaryItem } from "@/components/ui/SummaryItem";
 import { displayValue, formatDate, formatMoney, formatStatus } from "@/lib/formatters";
+import { updateAgreementInternalNotes } from "@/server/actions/agreements";
 import {
     getAgreementById,
     type AgreementInboxItem,
@@ -61,7 +62,7 @@ export default async function AgreementDetailPage({
                         </div>
 
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                            Full read-only view of this maintenance agreement record.
+                            Full administrative view of this maintenance agreement record.
                         </p>
                     </div>
 
@@ -74,11 +75,12 @@ export default async function AgreementDetailPage({
             <section className="grid gap-4 xl:grid-cols-3">
                 <div className="xl:col-span-2">
                     <AgreementDetailsPanel agreement={agreement} />
+                    <InternalNotesPanel agreement={agreement} />
                 </div>
 
                 <aside className="space-y-4">
                     <SummaryCard agreement={agreement} monthlyValue={monthlyValue} />
-                    <ReadOnlyNotice />
+                    <AgreementSafetyNotice />
                 </aside>
             </section>
         </main>
@@ -129,6 +131,60 @@ function AgreementDetailsPanel({
     );
 }
 
+function InternalNotesPanel({ agreement }: { agreement: AgreementInboxItem }) {
+    const saveNotes = updateAgreementInternalNotes.bind(null, agreement.id);
+
+    return (
+        <section className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-950/70 p-5 shadow-lg shadow-black/20">
+            <h2 className="text-lg font-semibold text-zinc-50">Internal Notes</h2>
+
+            <p className="mt-3 text-sm leading-6 text-zinc-400">
+                These notes are internal only. Saving does not email the client,
+                change agreement status, modify monthly rate, generate PDFs, or resend
+                agreements.
+            </p>
+
+            {agreement.internalNotes ? (
+                <div className="mt-5 rounded-xl border border-zinc-800 bg-black/20 p-4">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-yellow-500/80">
+                        Current Notes
+                    </h3>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-300">
+                        {agreement.internalNotes}
+                    </p>
+                </div>
+            ) : (
+                <p className="mt-5 rounded-xl border border-dashed border-zinc-800 bg-black/20 p-4 text-sm text-zinc-500">
+                    No internal notes have been saved for this agreement.
+                </p>
+            )}
+
+            <form action={saveNotes} className="mt-5 space-y-3">
+                <label
+                    htmlFor="internalNotes"
+                    className="text-sm font-semibold text-zinc-200"
+                >
+                    Update notes
+                </label>
+                <textarea
+                    id="internalNotes"
+                    name="internalNotes"
+                    defaultValue={agreement.internalNotes ?? ""}
+                    rows={7}
+                    className="w-full resize-y rounded-2xl border border-zinc-800 bg-black/30 px-4 py-3 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-yellow-500/50 focus:ring-2 focus:ring-yellow-500/10"
+                    placeholder="Add private operational context for STG admins..."
+                />
+                <button
+                    type="submit"
+                    className="w-full rounded-full border border-yellow-500/40 bg-yellow-500/15 px-4 py-2.5 text-sm font-semibold text-yellow-100 transition hover:border-yellow-400/70 hover:bg-yellow-500/25 sm:w-auto"
+                >
+                    Save Internal Notes
+                </button>
+            </form>
+        </section>
+    );
+}
+
 function SummaryCard({
     agreement,
     monthlyValue,
@@ -153,17 +209,17 @@ function SummaryCard({
     );
 }
 
-function ReadOnlyNotice() {
+function AgreementSafetyNotice() {
     return (
         <section className="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-5">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-yellow-300">
-                Read-Only Phase
+                Controlled Actions
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-yellow-100/80">
-                This detail view does not update agreement status, resend emails,
-                generate PDFs, create subscriptions, or modify the database. Those
-                actions will be added in later phases.
+                This page only allows internal note updates. It does not update
+                agreement status, resend emails, generate PDFs, create subscriptions,
+                or modify financial fields.
             </p>
         </section>
     );
