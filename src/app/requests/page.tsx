@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 export default async function RequestsPage({ searchParams }: RequestsPageProps) {
   const resolvedSearchParams = await searchParams;
   const activeFilter = normalizeRequestInboxFilter(resolvedSearchParams?.status);
-  const { requests, counts } = await getRequestsInbox(activeFilter);
+  const { requests, counts, tierCounts } = await getRequestsInbox(activeFilter);
 
   return (
     <main className="space-y-6">
@@ -42,9 +42,21 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
             </p>
           </div>
 
-          <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
-            <span className="font-semibold">{counts.all}</span>{" "}
-            total request{counts.all === 1 ? "" : "s"}
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
+              <span className="font-semibold">{counts.all}</span>{" "}
+              total request{counts.all === 1 ? "" : "s"}
+            </div>
+
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              <span className="font-semibold">{tierCounts.high}</span>{" "}
+              high-priority
+            </div>
+
+            <div className="rounded-xl border border-zinc-700 bg-zinc-900/60 px-4 py-3 text-sm text-zinc-300">
+              <span className="font-semibold">{tierCounts.medium}</span>{" "}
+              medium
+            </div>
           </div>
         </div>
       </section>
@@ -130,6 +142,8 @@ function RequestCard({ request }: { request: RequestInboxItem }) {
             </h2>
 
             <ContactedBadge contacted={request.contacted} />
+
+            <LeadTierBadge tier={request.tier} score={request.score} />
           </div>
 
           <p className="mt-1 text-sm text-zinc-400">
@@ -178,6 +192,34 @@ function ContactedBadge({ contacted }: { contacted: boolean }) {
   ) : (
     <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-200">
       New
+    </span>
+  );
+}
+
+const tierBadgeStyles: Record<RequestInboxItem["tier"], string> = {
+  high: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
+  medium: "border-yellow-500/30 bg-yellow-500/10 text-yellow-200",
+  low: "border-zinc-700 bg-zinc-900/60 text-zinc-400",
+};
+
+const tierBadgeLabels: Record<RequestInboxItem["tier"], string> = {
+  high: "High priority",
+  medium: "Medium priority",
+  low: "Low priority",
+};
+
+function LeadTierBadge({
+  tier,
+  score,
+}: {
+  tier: RequestInboxItem["tier"];
+  score: number;
+}) {
+  return (
+    <span
+      className={`rounded-full border px-3 py-1 text-xs font-semibold ${tierBadgeStyles[tier]}`}
+    >
+      {tierBadgeLabels[tier]} · {score}
     </span>
   );
 }

@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { scoreLead, type LeadScore } from "@/lib/lead-score";
 import { prisma } from "@/lib/prisma";
 
 export type RequestInboxFilter = "all" | "new" | "contacted";
@@ -18,7 +19,8 @@ const requestInboxSelect = {
 
 export type RequestInboxItem = Prisma.SystemRequestGetPayload<{
     select: typeof requestInboxSelect;
-}>;
+}> &
+    LeadScore;
 
 export async function getRequestsInbox(filter: RequestInboxFilter = "all") {
     const where: Prisma.SystemRequestWhereInput =
@@ -45,23 +47,46 @@ export async function getRequestsInbox(filter: RequestInboxFilter = "all") {
         }),
     ]);
 
+    const scoredRequests: RequestInboxItem[] = requests.map((request) => ({
+        ...request,
+        ...scoreLead(request),
+    }));
+
     return {
-        requests,
+        requests: scoredRequests,
         counts: {
             all: totalCount,
             new: totalCount - contactedCount,
             contacted: contactedCount,
         },
+        tierCounts: {
+            high: scoredRequests.filter((request) => request.tier === "high")
+                .length,
+            medium: scoredRequests.filter(
+                (request) => request.tier === "medium",
+            ).length,
+            low: scoredRequests.filter((request) => request.tier === "low")
+                .length,
+        },
     };
 }
 
 export async function getRequestById(id: string) {
-    return prisma.systemRequest.findUnique({
+    const request = await prisma.systemRequest.findUnique({
         where: {
             id,
         },
         select: requestInboxSelect,
     });
+
+    if (!request) {
+        return null;
+    }
+
+    return {
+        ...request,
+        ...scoreLead(request),
+    };
 }
 
 export function normalizeRequestInboxFilter(
