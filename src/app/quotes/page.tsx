@@ -44,9 +44,17 @@ export default async function QuotesPage({ searchParams }: QuotesPageProps) {
                         </p>
                     </div>
 
-                    <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
-                        <span className="font-semibold">{counts.all}</span>{" "}
-                        total quote{counts.all === 1 ? "" : "s"}
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Link
+                            href="/quotes/create"
+                            className="rounded-full border border-yellow-500/40 bg-yellow-500/15 px-4 py-2.5 text-sm font-semibold text-yellow-100 transition hover:border-yellow-400/70 hover:bg-yellow-500/25"
+                        >
+                            + Create Quote
+                        </Link>
+                        <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
+                            <span className="font-semibold">{counts.all}</span>{" "}
+                            total quote{counts.all === 1 ? "" : "s"}
+                        </div>
                     </div>
                 </div>
             </section>

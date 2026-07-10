@@ -84,6 +84,8 @@ const OPTIONAL_ENV_VARS = [
     "RESEND_API_KEY",
     "BLOB_READ_WRITE_TOKEN",
     "NEXT_PUBLIC_SITE_URL",
+    "STG_SITE_URL",
+    "STG_SERVICE_API_KEY",
 ] as const;
 
 function isEnvConfigured(name: string): boolean {
