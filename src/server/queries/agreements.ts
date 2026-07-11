@@ -117,3 +117,11 @@ export function normalizeAgreementInboxFilter(
 
     return "all";
 }
+
+export async function getClientAccountByAgreementId(agreementId: string) {
+    return prisma.clientAccount.findUnique({
+        where: {
+            agreementId,
+        },
+    });
+}

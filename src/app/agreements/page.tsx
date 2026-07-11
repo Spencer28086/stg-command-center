@@ -42,15 +42,22 @@ export default async function AgreementsPage({
               Agreements Inbox
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-              Read-only view of STG maintenance and partnership agreements.
-              Status updates, resend actions, and agreement management will be
-              added later.
+              STG maintenance and partnership agreements. New agreements are
+              created here and sent through the website for client signing.
             </p>
           </div>
 
-          <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
-            <span className="font-semibold">{counts.all}</span>{" "}
-            total agreement{counts.all === 1 ? "" : "s"}
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/agreements/create"
+              className="rounded-full border border-yellow-500/40 bg-yellow-500/15 px-4 py-2.5 text-sm font-semibold text-yellow-100 transition hover:border-yellow-400/70 hover:bg-yellow-500/25"
+            >
+              + Create Agreement
+            </Link>
+            <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
+              <span className="font-semibold">{counts.all}</span>{" "}
+              total agreement{counts.all === 1 ? "" : "s"}
+            </div>
           </div>
         </div>
       </section>

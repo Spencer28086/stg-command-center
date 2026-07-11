@@ -469,6 +469,7 @@ model MaintenanceAgreement {
   partnershipPlan   String?
   partnershipRate   Decimal? @db.Decimal(10, 2)
   referralCode      String?
+  referredByCode String?
 
   deposit            Decimal? @db.Decimal(10, 2)
   amountDueAtSigning Decimal? @db.Decimal(10, 2)
@@ -780,4 +781,25 @@ model AccountLedger {
   @@index([accountId])
   @@index([createdAt])
   @@index([type])
+}
+
+model Referral {
+  id String @id @default(cuid())
+
+  code                String
+  referrerAgreementId String
+  referredAgreementId String @unique
+
+  status String @default("PENDING") // PENDING | QUALIFIED | VOID
+
+  referrerCreditAmount Decimal? @db.Decimal(10, 2)
+  refereeCreditAmount  Decimal? @db.Decimal(10, 2)
+
+  qualifiedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([referrerAgreementId])
+  @@index([code])
+  @@index([status])
 }

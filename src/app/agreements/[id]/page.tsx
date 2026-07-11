@@ -3,13 +3,18 @@ import { notFound } from "next/navigation";
 import { MetaItem } from "@/components/ui/MetaItem";
 import { SummaryItem } from "@/components/ui/SummaryItem";
 import { displayValue, formatDate, formatMoney, formatStatus } from "@/lib/formatters";
+import { ClientAccountPacketCard } from "@/components/agreements/ClientAccountPacketCard";
 import { updateAgreementInternalNotes } from "@/server/actions/agreements";
 import {
     getAgreementById,
+    getClientAccountByAgreementId,
     type AgreementInboxItem,
 } from "@/server/queries/agreements";
 
 type AgreementDetailPageProps = {
+    searchParams?:
+    | Promise<Record<string, string | string[] | undefined>>
+    | Record<string, string | string[] | undefined>;
     params:
     | Promise<{
         id: string;
@@ -23,9 +28,14 @@ export const dynamic = "force-dynamic";
 
 export default async function AgreementDetailPage({
     params,
+    searchParams,
 }: AgreementDetailPageProps) {
     const resolvedParams = await params;
     const agreement = await getAgreementById(resolvedParams.id);
+    const resolvedSearchParams = await searchParams;
+    const account = await getClientAccountByAgreementId(resolvedParams.id);
+    const bannerError = firstParam(resolvedSearchParams?.error);
+    const bannerNotice = firstParam(resolvedSearchParams?.notice);
 
     if (!agreement) {
         notFound();
@@ -71,6 +81,14 @@ export default async function AgreementDetailPage({
                     </div>
                 </div>
             </section>
+
+            <ClientAccountPacketCard
+                agreementId={agreement.id}
+                account={account}
+                signed={Boolean(agreement.signedAt)}
+                error={bannerError}
+                notice={bannerNotice}
+            />
 
             <section className="grid gap-4 xl:grid-cols-3">
                 <div className="xl:col-span-2">
@@ -217,9 +235,9 @@ function AgreementSafetyNotice() {
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-yellow-100/80">
-                This page only allows internal note updates. It does not update
-                agreement status, resend emails, generate PDFs, create subscriptions,
-                or modify financial fields.
+                This page allows internal note updates and emailing the Client
+                Account Packet. It does not update agreement status, create
+                subscriptions, or modify financial fields.
             </p>
         </section>
     );
@@ -271,3 +289,8 @@ function AgreementStatusBadge({
     );
 }
 
+
+function firstParam(value: string | string[] | undefined): string | null {
+    if (Array.isArray(value)) return value[0] ?? null;
+    return value ?? null;
+}

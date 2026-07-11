@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
     Activity,
+    Gift,
     Bell,
     ClipboardList,
     FileSignature,
@@ -33,6 +34,7 @@ export const navItems: NavItem[] = [
     { label: "Subscriptions", href: "/subscriptions", icon: WalletCards },
     { label: "Apps", href: "/apps", icon: Package },
     { label: "Agreements", href: "/agreements", icon: FileSignature },
+    { label: "Referrals", href: "/referrals", icon: Gift },
     { label: "Support", href: "/support", icon: Headphones },
     { label: "Testimonials", href: "/testimonials", icon: MessageSquareQuote },
     { label: "Waitlist", href: "/waitlist", icon: Mails },
